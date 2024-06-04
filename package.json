@@ -1,0 +1,32 @@
+{
+  "name": "nes-chr-to-bmp",
+  "displayName": "NES CHR to BMP",
+  "description": "Open .nes files and extract chr ready to edit",
+  "version": "0.1",
+  "author": {
+    "name": "Flavio Brassesco",
+    "email": "brassescoflavio@gmail.com",
+    "url": "https://github.com/flaviobrassesco"
+  },
+  "contributors": [],
+  "publisher": "flavio-brassesco",
+  "license": "CC-BY-4.0",
+  "categories": [
+    "Scripts"
+  ],
+  "config": {
+    "aseprite": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/Aseprite.exe",
+    "extensions": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/data/extensions"
+  },
+  "scripts": {
+    "dev": "rm -r $npm_package_config_extensions/chr-to-bmp ; mkdir -p $npm_package_config_extensions/chr-to-bmp ; cp chr-to-bmp.lua $npm_package_config_extensions/chr-to-bmp ; cp package.json $npm_package_config_extensions/chr-to-bmp ; $npm_package_config_aseprite",
+    "build": "7z a -tzip chr-to-bmp.zip chr-to-bmp.lua package.json ; mv chr-to-bmp.zip chr-to-bmp.aseprite-extension"
+  },
+  "contributes": {
+    "scripts": [
+      {
+        "path": "./chr-to-bmp.lua"
+      }
+    ]
+  }
+}
