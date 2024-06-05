@@ -2,3 +2,6 @@
 *.chr
 *.bmp
 *.aseprite-extension
+/definitions
+.vscode
+test.lua
