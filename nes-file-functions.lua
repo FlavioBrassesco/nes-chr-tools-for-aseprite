@@ -50,7 +50,7 @@ function create_chr_files(bytes, chr_bank_start)
     end
 end
 
-function get_first_chr_bank(bytes, chr_bank_start)
+function get_char_bank(bytes, chr_bank_start)
     local buffer = {}
     local this_bank_start = chr_bank_start - 1
     for j = 1, 8192 do

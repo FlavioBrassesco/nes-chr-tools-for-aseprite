@@ -130,14 +130,18 @@ function reverse(chr_array, chr_size)
     return buffer
 end
 
-function chr_to_bmp(bytes, output_name)
-    local width = 128
-    local height = 256
-
+function chr_to_raw_bmp_data(bytes)
     local reversed = reverse(bytes, 8192)
     local ordered = order_chr(reversed, 8192)
     local merged = merge_chr(ordered, 8192)
-    local decompressed = decompress_chr(merged, 8192)
+    return decompress_chr(merged, 8192)
+end
+
+function chr_to_bmp_buffer(bytes)
+    local width = 128
+    local height = 256
+
+    local decompressed = chr_to_raw_bmp_data(bytes)
 
     local fileheader = {66, 77, -- bitmap chr_bank_start
     0, 0, 0, 0, -- file size in bytes
@@ -183,26 +187,35 @@ function chr_to_bmp(bytes, output_name)
     infoheader[11] = height >> 16
     infoheader[12] = height >> 24
 
-    local f = io.open(output_name, "wb")
-    io.output(f)
+    local buffer = {}
 
     for i = 1, 14 do
-        io.write(string.char(fileheader[i]))
+        buffer[#buffer + 1] = string.char(fileheader[i])
     end
 
     for i = 1, 40 do
-        io.write(string.char(infoheader[i]))
+        buffer[#buffer + 1] = string.char(infoheader[i])
     end
 
     for i = 1, 16 do
-        io.write(string.char(palette[i]))
+        buffer[#buffer + 1] = string.char(palette[i])
     end
 
     for i = 1, 16384 do
-        io.write(string.char(decompressed[i]))
+        buffer[#buffer + 1] = string.char(decompressed[i])
     end
 
-    io.close(f)
+    return buffer
+end
 
-    print(string.format("%s generated: %d Bytes\n", output_name, filesize))
+function chr_to_bmp(bytes, output_name)
+    local buffer = chr_to_bmp_buffer(bytes)
+
+    local f = io.open(output_name, "wb")
+    io.output(f)
+
+    for i = 1, 16454 do
+        io.write(buffer[i])
+    end
+    io.close(f)
 end
