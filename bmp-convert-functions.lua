@@ -107,6 +107,22 @@ function decompress_chr(chr_array, chr_size)
     return buffer
 end
 
+function decompress_chr_255(chr_array, chr_size)
+    local buffer = {}
+    local mask = 3
+
+    local i = 0
+    while (i < chr_size) do
+        buffer[i * 4 + 1] = string.char((chr_array[i + 1] >> 6) & mask)
+        buffer[i * 4 + 2] = string.char((chr_array[i + 1] >> 4) & mask)
+        buffer[i * 4 + 3] = string.char((chr_array[i + 1] >> 2) & mask)
+        buffer[i * 4 + 4] = string.char((chr_array[i + 1] & mask))
+        i = i + 1
+    end
+
+    return buffer
+end
+
 function reverse(chr_array, chr_size)
     local buffer = {}
     local tile_cols = math.floor(math.sqrt(((chr_size / 4) / 8)))
@@ -128,6 +144,12 @@ function reverse(chr_array, chr_size)
     end
 
     return buffer
+end
+
+function chr_to_raw_bmp_data_255(bytes)
+    local ordered = order_chr(bytes, 8192)
+    local merged = merge_chr(ordered, 8192)
+    return decompress_chr_255(merged, 8192)
 end
 
 function chr_to_raw_bmp_data(bytes)

@@ -12,7 +12,7 @@ function open_nes_file(file)
     if (bytes[1] ~= 78 or bytes[2] ~= 69 or bytes[3] ~= 83 or bytes[4] ~= 26) then
         error("file is not a .nes file")
     end
-    print("proper .nes file opened\n")
+
     return bytes
 end
 
@@ -23,8 +23,6 @@ function get_chr_banks_start_index(bytes)
     if (chr_size_kb == 0) then
         error("this rom has no CHR banks")
     end
-
-    print(string.format("found %d compatible chr bank/s", chr_size_kb))
 
     local has_trainer = bytes[7] & 8
     has_trainer = has_trainer >> 3
