@@ -1,5 +1,6 @@
 require "nes-file-functions"
 require "bmp-convert-functions"
+require "chr-file-functions"
 
 function init(plugin)
     if plugin.preferences.first_bank == nil then
@@ -11,6 +12,50 @@ function init(plugin)
         id = "nes_id",
         title = "NES CHR Tools",
         group = "file_import"
+    }
+
+    plugin:newCommand{
+        id = "export_chr",
+        title = "Export .chr file",
+        group = "nes_id",
+        onclick = function()
+            check_sprite()
+
+            local dlg = Dialog({
+                title = "Export CHR file",
+                notitlebar = false
+            })
+            dlg:file{
+                id = "export",
+                label = "Export to:",
+                title = "Export to:",
+                open = false,
+                save = true,
+                filetypes = {"chr"},
+                onchange = function()
+                    dlg:modify({
+                        id = "confirm",
+                        enabled = true
+                    })
+                end
+            }
+            dlg:button{
+                id = "confirm",
+                text = "Export",
+                enabled = false
+            }
+            dlg:button{
+                id = "cancel",
+                text = "Cancel"
+            }
+            dlg:show()
+
+            local data = dlg.data
+            if data.confirm and data.export then
+                export_chr(data.export)
+            end
+
+        end
     }
 
     plugin:newCommand{
@@ -56,7 +101,7 @@ function init(plugin)
                 enabled = not plugin.preferences.first_bank
             }:button{
                 id = "confirm",
-                text = "Confirm",
+                text = "Import",
                 enabled = false
             }:button{
                 id = "cancel",
@@ -137,7 +182,6 @@ function init(plugin)
                         sprite:setPalette(palette)
                         sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
                     end
-
                 end
             end
         end
