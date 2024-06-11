@@ -90,6 +90,48 @@ function init(plugin)
     }
 
     plugin:newCommand{
+        id = "import_s",
+        title = "Import .s file",
+        group = "nes_id",
+        onclick = function()
+            local dlg = Dialog({
+                title = "Import .s file",
+                notitlebar = false
+            })
+            dlg:file{
+                id = "import_s",
+                label = "Import .s file",
+                title = "Import .s file",
+                open = true,
+                focus = true,
+                filename = "",
+                filetypes = {"s"},
+                onchange = function()
+                    dlg:modify({
+                        id = "confirm",
+                        enabled = true
+                    })
+                end
+            }
+            dlg:button{
+                id = "confirm",
+                text = "Import",
+                enabled = false
+            }
+            dlg:button{
+                id = "cancel",
+                text = "Cancel"
+            }
+            dlg:show()
+
+            local data = dlg.data
+            if data.confirm then
+                import_s(data.import_s)
+            end
+        end
+    }
+
+    plugin:newCommand{
         id = "import_chr",
         title = "Import .chr file",
         group = "nes_id",
@@ -192,4 +234,9 @@ function init(plugin)
             end
         end
     }
+
+    -- TODO
+    -- change print to alert
+    -- update sprite alert to assert
+    -- read .s files
 end

@@ -86,6 +86,27 @@ function import_chr(filename)
     sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
 end
 
+function import_s(filename)
+    local file = assert(io.open(filename, "r"))
+    local str = file:read("*all")
+    file:close()
+    local chr = {}
+
+    for c in str:gmatch "$.." do
+        if (c) then
+            chr[#chr + 1] = string.char(tonumber(c:sub(2, 3), 16)):byte()
+        end
+    end
+
+    local buffer = chr_to_raw_bmp_data_255(chr)
+    local image = Image(gImageSpec)
+    image.bytes = table.concat(buffer)
+
+    local sprite = Sprite(gImageSpec)
+    sprite:setPalette(gPalette)
+    sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
+end
+
 function export_chr_s(filename)
     local sprite = app.sprite
     local img = Image(sprite.spec)
