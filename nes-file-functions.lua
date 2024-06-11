@@ -1,13 +1,8 @@
+require "globals"
+require "utils"
+
 function open_nes_file(file)
-    local file = assert(io.open(file, "rb"))
-    local bytes = {}
-    repeat
-        local str = file:read(4096)
-        for c in (str or ''):gmatch '.' do
-            bytes[#bytes + 1] = c:byte()
-        end
-    until not str
-    file:close()
+    local bytes = open_file(file)
 
     if (bytes[1] ~= 78 or bytes[2] ~= 69 or bytes[3] ~= 83 or bytes[4] ~= 26) then
         error("file is not a .nes file")
@@ -57,12 +52,60 @@ function get_char_bank(bytes, chr_bank_start)
     return buffer;
 end
 
-function num_to_bits(num)
-    local bits = 8
-    local t = {}
-    for b = bits, 1, -1 do
-        t[b] = math.fmod(num, 2)
-        num = math.floor((num - t[b]) / 2)
+function import_nes(filename)
+    local bytes = open_nes_file(filename)
+    local chr_bank_start, chr_size = get_chr_banks_start_index(bytes)
+
+    for i = 1, chr_size do
+        local chr = get_char_bank(bytes, chr_bank_start + (i - 1) * 8192)
+        local buffer = chr_to_raw_bmp_data_255(chr)
+
+        local image = Image(gImageSpec)
+        image.bytes = table.concat(buffer)
+
+        local sprite = Sprite(gImageSpec)
+        sprite.filename = string.format("bank-%d", i - 1)
+        sprite:setPalette(gPalette)
+        sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
     end
-    return table.concat(t)
+
+end
+
+function import_nes_as_layers(filename)
+    local sprite
+    sprite = Sprite(gImageSpec)
+    sprite:setPalette(gPalette)
+
+    local bytes = open_nes_file(filename)
+    local chr_bank_start, chr_size = get_chr_banks_start_index(bytes)
+
+    for i = 1, chr_size do
+        local chr = get_char_bank(bytes, chr_bank_start + (i - 1) * 8192)
+        local buffer = chr_to_raw_bmp_data_255(chr)
+
+        local image = Image(gImageSpec)
+        image.bytes = table.concat(buffer)
+
+        local layer = i == 1 and sprite.layers[1] or sprite:newLayer()
+        layer.isVisible = i == 1
+        layer.name = string.format("bank-%d", i - 1)
+        sprite:newCel(layer, 1, image, Point(0, 0))
+    end
+end
+
+function import_nes_first_bank(filename)
+    local sprite
+
+    local bytes = open_nes_file(filename)
+    local chr_bank_start = get_chr_banks_start_index(bytes)
+
+    local chr = get_char_bank(bytes, chr_bank_start)
+    local buffer = chr_to_raw_bmp_data_255(chr)
+    local image = Image(gImageSpec)
+    image.bytes = table.concat(buffer)
+
+    local sprite = Sprite(gImageSpec)
+    sprite.filename = "bank-0"
+    sprite:setPalette(gPalette)
+    sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
 end

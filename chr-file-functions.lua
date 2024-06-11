@@ -1,3 +1,6 @@
+require "globals"
+require "utils"
+
 local TOTAL_TILES = 512
 local TILES_PER_ROW = 16
 local TILE_SIZE = 8
@@ -70,4 +73,15 @@ function export_chr(filename)
     io.close(f)
 
     print("File saved successfully")
+end
+
+function import_chr(filename)
+    local chr = open_file(filename)
+    local buffer = chr_to_raw_bmp_data_255(chr)
+    local image = Image(gImageSpec)
+    image.bytes = table.concat(buffer)
+
+    local sprite = Sprite(gImageSpec)
+    sprite:setPalette(gPalette)
+    sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
 end

@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "build .aseprite",
+      "command": "7z a -tzip nes-chr-tools.zip nes-chr-tools.lua bmp-convert-functions.lua chr-file-functions.lua globals.lua nes-file-functions.lua utils.lua package.json ; mv nes-chr-tools.zip nes-chr-tools.aseprite-extension"
+    },
+    {
+      "type": "shell",
+      "problemMatcher": [],
+      "label": "dev",
+      "options": {
+        "env": {
+          "ASEPRITE": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/Aseprite.exe",
+          "EXTENSIONS": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/data/extensions"
+        }
+      },
+      "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp nes-chr-tools.lua ${EXTENSIONS}/nes-chr-tools ; cp package.json ${EXTENSIONS}/nes-chr-tools ; ${ASEPRITE}",
+      "group": "test"
+    }
+  ]
+}
