@@ -1,35 +1,48 @@
-describe("Busted unit testing framework", function()
-  describe("should be awesome", function()
-    it("should be easy to use", function()
-      assert.truthy("Yup.")
+package.path = package.path .. ";../?.lua"
+require "bmp-convert-functions"
+
+local chr_bytes = {0, 1, 2, 3, 4, 5, 6, 7, -- 
+8, 9, 10, 11, 12, 13, 14, 15}
+
+local img_bytes = {0, 0, 0, 0, 1, 0, 0, 0, --
+0, 0, 0, 0, 1, 0, 0, 3, --
+0, 0, 0, 0, 1, 0, 3, 0, --
+0, 0, 0, 0, 1, 0, 3, 3, -- 
+0, 0, 0, 0, 1, 3, 0, 0, -- 
+0, 0, 0, 0, 1, 3, 0, 3, -- 
+0, 0, 0, 0, 1, 3, 3, 0, -- 
+0, 0, 0, 0, 1, 3, 3, 3}
+
+local s_str = ".segment \"CHARS\"\n.byte $00,$01,$02,$03,$04,$05,$06,$07\n.byte $08,$09,$0A,$0B,$0C,$0D,$0E,$0F\n"
+
+describe("core convert functions", function()
+    it("should convert chr data to raw bmp", function()
+        local input = chr_bytes
+        local e_output = {64, 67, 76, 79, 112, 115, 124, 127}
+        local e_output2 = img_bytes
+
+        local output = merge_tables(input)
+        local output2 = transform_tables(output, 1)
+        assert.are.same(e_output, output)
+        assert.are.same(e_output2, output2)
     end)
+    it("should convert raw bmp data to chr", function()
+        local img = {}
 
-    it("should have lots of features", function()
-      -- deep check comparisons
-      assert.are.same({ table = "great"}, { table = "not great" })
-      -- or check by reference!
-      assert.are_not.equal({ table = "great"}, { table = "great"})
+        function img:getPixel(x, y)
+            return img_bytes[1 + x + y * 8]
+        end
 
-      assert.truthy("this is a string") -- truthy: not false or nil
+        local output = bmp_to_chr(img, 8, 8)
 
-      assert.True(1 == 1)
-      assert.is_true(1 == 1)
-
-      assert.falsy(nil)
-      assert.has_error(function() error("Wat") end, "Wat")
+        assert.are.same(chr_bytes, output)
     end)
-
-    it("should provide some shortcuts to common functions", function()
-      assert.are.unique({{ thing = 1 }, { thing = 2 }, { thing = 3 }})
+    it("should convert s data to chr", function()
+        local output = s_to_chr(s_str)
+        assert.are.same(chr_bytes, output)
     end)
-
-    -- it("should have mocks and spies for functional tests", function()
-    --   local thing = require("thing_module")
-    --   spy.on(thing, "greet")
-    --   thing.greet("Hi!")
-
-    --   assert.spy(thing.greet).was.called()
-    --   assert.spy(thing.greet).was.called_with("Hi!")
-    -- end)
-  end)
+    it("should convert chr data to s", function()
+        local output = chr_to_s(chr_bytes)
+        assert.are.same(s_str, output)
+    end)
 end)

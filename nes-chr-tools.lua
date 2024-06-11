@@ -89,6 +89,48 @@ function init(plugin)
     }
 
     plugin:newCommand{
+        id = "import_s",
+        title = "Import .s file",
+        group = "nes_id",
+        onclick = function()
+            local dlg = Dialog({
+                title = "Import .s file",
+                notitlebar = false
+            })
+            dlg:file{
+                id = "import_s",
+                label = "Import .s file",
+                title = "Import .s file",
+                open = true,
+                focus = true,
+                filename = "",
+                filetypes = {"s"},
+                onchange = function()
+                    dlg:modify({
+                        id = "confirm",
+                        enabled = true
+                    })
+                end
+            }
+            dlg:button{
+                id = "confirm",
+                text = "Import",
+                enabled = false
+            }
+            dlg:button{
+                id = "cancel",
+                text = "Cancel"
+            }
+            dlg:show()
+
+            local data = dlg.data
+            if data.confirm then
+                import_s(data.import_s)
+            end
+        end
+    }
+
+    plugin:newCommand{
         id = "import_chr",
         title = "Import .chr file",
         group = "nes_id",
@@ -132,6 +174,49 @@ function init(plugin)
 
     plugin:newMenuSeparator{
         group = "nes_id"
+    }
+
+    plugin:newCommand{
+        id = "export_s",
+        title = "Export .s file",
+        group = "nes_id",
+        onclick = function()
+            check_sprite()
+
+            local dlg = Dialog({
+                title = "Export .s file",
+                notitlebar = false
+            })
+            dlg:file{
+                id = "export",
+                label = "Export to:",
+                title = "Export to:",
+                open = false,
+                save = true,
+                filetypes = {"s"},
+                onchange = function()
+                    dlg:modify({
+                        id = "confirm",
+                        enabled = true
+                    })
+                end
+            }
+            dlg:button{
+                id = "confirm",
+                text = "Export",
+                enabled = false
+            }
+            dlg:button{
+                id = "cancel",
+                text = "Cancel"
+            }
+            dlg:show()
+
+            local data = dlg.data
+            if data.confirm and data.export then
+                export_chr_s(data.export)
+            end
+        end
     }
 
     plugin:newCommand{
