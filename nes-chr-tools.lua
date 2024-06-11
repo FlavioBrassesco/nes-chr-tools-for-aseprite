@@ -7,6 +7,7 @@ function init(plugin)
     if plugin.preferences.first_bank == nil then
         plugin.preferences.first_bank = true
         plugin.preferences.bank_layers = false
+        plugin.preferences.s_export = true
     end
 
     plugin:newMenuGroup{
@@ -151,11 +152,21 @@ function init(plugin)
                 title = "Export to:",
                 open = false,
                 save = true,
-                filetypes = {"chr"},
+                filetypes = {(plugin.preferences.s_export and "s" or "chr")},
                 onchange = function()
                     dlg:modify({
                         id = "confirm",
                         enabled = true
+                    })
+                end
+            }:check{
+                id = "s_export",
+                label = "Export as .s",
+                selected = plugin.preferences.s_export,
+                onclick = function()
+                    dlg:modify({
+                        id = "export",
+                        filetypes = {(dlg.data.s_export and "s" or "chr")}
                     })
                 end
             }
@@ -172,7 +183,12 @@ function init(plugin)
 
             local data = dlg.data
             if data.confirm and data.export then
-                export_chr(data.export)
+                plugin.preferences.s_export = data.s_export
+                if (data.s_export) then
+                    export_chr_s(data.export)
+                else
+                    export_chr(data.export)
+                end
             end
         end
     }

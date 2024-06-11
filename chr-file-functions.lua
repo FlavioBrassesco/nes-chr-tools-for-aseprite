@@ -85,3 +85,30 @@ function import_chr(filename)
     sprite:setPalette(gPalette)
     sprite:newCel(sprite.layers[1], 1, image, Point(0, 0))
 end
+
+function export_chr_s(filename)
+    local sprite = app.sprite
+    local img = Image(sprite.spec)
+    img:drawSprite(sprite, app.frame)
+    local tiles = table.concat(get_tiles(img))
+
+    local segment = ".segment \"CHARS\"\n";
+    local aux_str = segment .. ".byte ";
+    local c = 0
+    for ch in tiles:gmatch "." do
+        if (ch) then
+            if (c % 8 == 7) then
+                aux_str = aux_str .. "$" .. string.format("%02X", ch:byte()) .. "\n.byte "
+            else
+                aux_str = aux_str .. "$" .. string.format("%02X", ch:byte()) .. ","
+            end
+            c = c + 1
+        end
+    end
+
+    aux_str = aux_str:sub(1, -7)
+    local f = io.open(filename, "w")
+    io.output(f)
+    io.write(aux_str)
+    io.close(f)
+end
