@@ -1,8 +1,6 @@
 {
 	"name": "Ubuntu",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
+	"image": "flaviobrassesco/lua-with-busted",
 	"mounts": [
 		"source=C:/Program Files (x86)/Steam/steamapps/common/Aseprite,target=/aseprite,type=bind,consistency=cached"
 	]
