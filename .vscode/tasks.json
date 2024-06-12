@@ -17,12 +17,21 @@
       "label": "dev",
       "options": {
         "env": {
-          "ASEPRITE": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/Aseprite.exe",
-          "EXTENSIONS": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/data/extensions"
+          "EXTENSIONS": "/aseprite/data/extensions/"
         }
       },
-      "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp nes-chr-tools.lua ${EXTENSIONS}/nes-chr-tools ; cp package.json ${EXTENSIONS}/nes-chr-tools ; ${ASEPRITE}",
-      "group": "test"
+      "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp -r * ${EXTENSIONS}/nes-chr-tools",
+      "group": "none"
+    },
+    {
+      "type": "shell",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "test: busted",
+      "command": "busted test/main.lua"
     }
   ]
 }

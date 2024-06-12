@@ -1,0 +1,15 @@
+{
+	"name": "Ubuntu",
+	"image": "flaviobrassesco/lua-with-busted:latest",
+	"mounts": [
+		"source=C:/Program Files (x86)/Steam/steamapps/common/Aseprite,target=/aseprite,type=bind,consistency=cached"
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"GitHub.vscode-github-actions",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}
