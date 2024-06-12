@@ -4,25 +4,14 @@ require "utils"
 local TOTAL_TILES = 512
 local TILES_PER_ROW = 16
 local TILE_SIZE = 8
+local SAVE_SUCCESS_STRING = "File saved successfully"
 
 function check_sprite()
     local sprite = app.sprite
-    if sprite == nil then
-        app.alert("No sprite open")
-        return
-    end
-    if (sprite.width ~= 128 or sprite.height ~= 256) then
-        app.alert("File size must be 128x256")
-        return
-    end
-    if (sprite.colorMode ~= ColorMode.INDEXED) then
-        app.alert("Sprite color mode must be Indexed")
-        return
-    end
-    if (#sprite.palettes[1] ~= 4) then
-        app.alert("Palette must be 4 colors")
-        return
-    end
+    assert(sprite, "No sprite open")
+    assert(sprite.width == 128 and sprite.height == 256, "File size must be 128x256")
+    assert(sprite.colorMode == ColorMode.INDEXED, "Sprite color mode must be Indexed")
+    assert(#sprite.palettes[1] == 4, "Palette must be 4 colors")
 end
 
 function get_tiles(img)
@@ -65,14 +54,14 @@ function export_chr(filename)
     img:drawSprite(sprite, app.frame)
     local tiles = get_tiles(img)
 
-    local f = io.open(filename, "wb")
+    local f = assert(io.open(filename, "wb"))
     io.output(f)
     for i = 1, 1024 do
         io.write(tiles[i])
     end
     io.close(f)
 
-    print("File saved successfully")
+    app.alert(SAVE_SUCCESS_STRING)
 end
 
 function import_chr(filename)
@@ -97,6 +86,8 @@ function import_s(filename)
             chr[#chr + 1] = string.char(tonumber(c:sub(2, 3), 16)):byte()
         end
     end
+
+    assert(#chr > 0, "Not a proper .s file")
 
     local buffer = chr_to_raw_bmp_data_255(chr)
     local image = Image(gImageSpec)
@@ -128,8 +119,10 @@ function export_chr_s(filename)
     end
 
     aux_str = aux_str:sub(1, -7)
-    local f = io.open(filename, "w")
+    local f = assert(io.open(filename, "w"))
     io.output(f)
     io.write(aux_str)
     io.close(f)
+
+    app.alert(SAVE_SUCCESS_STRING)
 end

@@ -15,9 +15,7 @@ function get_chr_banks_start_index(bytes)
     local prg_size_kb = bytes[5]
     local chr_size_kb = bytes[6]
 
-    if (chr_size_kb == 0) then
-        error("this rom has no CHR banks")
-    end
+    assert(chr_size_kb > 0, "this rom has no CHR banks")
 
     local has_trainer = bytes[7] & 8
     has_trainer = has_trainer >> 3

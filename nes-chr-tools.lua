@@ -7,7 +7,6 @@ function init(plugin)
     if plugin.preferences.first_bank == nil then
         plugin.preferences.first_bank = true
         plugin.preferences.bank_layers = false
-        plugin.preferences.s_export = true
     end
 
     plugin:newMenuGroup{
@@ -178,14 +177,14 @@ function init(plugin)
     }
 
     plugin:newCommand{
-        id = "export_chr",
-        title = "Export .chr file",
+        id = "export_s",
+        title = "Export .s file",
         group = "nes_id",
         onclick = function()
             check_sprite()
 
             local dlg = Dialog({
-                title = "Export CHR file",
+                title = "Export .s file",
                 notitlebar = false
             })
             dlg:file{
@@ -194,21 +193,11 @@ function init(plugin)
                 title = "Export to:",
                 open = false,
                 save = true,
-                filetypes = {(plugin.preferences.s_export and "s" or "chr")},
+                filetypes = {"s"},
                 onchange = function()
                     dlg:modify({
                         id = "confirm",
                         enabled = true
-                    })
-                end
-            }:check{
-                id = "s_export",
-                label = "Export as .s",
-                selected = plugin.preferences.s_export,
-                onclick = function()
-                    dlg:modify({
-                        id = "export",
-                        filetypes = {(dlg.data.s_export and "s" or "chr")}
                     })
                 end
             }
@@ -225,18 +214,51 @@ function init(plugin)
 
             local data = dlg.data
             if data.confirm and data.export then
-                plugin.preferences.s_export = data.s_export
-                if (data.s_export) then
-                    export_chr_s(data.export)
-                else
-                    export_chr(data.export)
-                end
+                export_chr_s(data.export)
             end
         end
     }
 
-    -- TODO
-    -- change print to alert
-    -- update sprite alert to assert
-    -- read .s files
+    plugin:newCommand{
+        id = "export_chr",
+        title = "Export .chr file",
+        group = "nes_id",
+        onclick = function()
+            check_sprite()
+
+            local dlg = Dialog({
+                title = "Export CHR file",
+                notitlebar = false
+            })
+            dlg:file{
+                id = "export",
+                label = "Export to:",
+                title = "Export to:",
+                open = false,
+                save = true,
+                filetypes = {"chr"},
+                onchange = function()
+                    dlg:modify({
+                        id = "confirm",
+                        enabled = true
+                    })
+                end
+            }
+            dlg:button{
+                id = "confirm",
+                text = "Export",
+                enabled = false
+            }
+            dlg:button{
+                id = "cancel",
+                text = "Cancel"
+            }
+            dlg:show()
+
+            local data = dlg.data
+            if data.confirm and data.export then
+                export_chr(data.export)
+            end
+        end
+    }
 end
