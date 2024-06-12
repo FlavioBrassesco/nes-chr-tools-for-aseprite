@@ -17,11 +17,10 @@
       "label": "dev",
       "options": {
         "env": {
-          "ASEPRITE": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/Aseprite.exe",
-          "EXTENSIONS": "C:/PROGRA~2/Steam/steamapps/common/Aseprite/data/extensions"
+          "EXTENSIONS": "/aseprite/data/extensions/"
         }
       },
-      "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp nes-chr-tools.lua ${EXTENSIONS}/nes-chr-tools ; cp package.json ${EXTENSIONS}/nes-chr-tools ; ${ASEPRITE}",
+      "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp -r * ${EXTENSIONS}/nes-chr-tools",
       "group": "test"
     }
   ]
