@@ -21,7 +21,17 @@
         }
       },
       "command": "rm -r ${EXTENSIONS}/nes-chr-tools ; mkdir -p ${EXTENSIONS}/nes-chr-tools ; cp -r * ${EXTENSIONS}/nes-chr-tools",
-      "group": "test"
+      "group": "none"
+    },
+    {
+      "type": "shell",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "label": "test: busted",
+      "command": "busted test/main.lua"
     }
   ]
 }
