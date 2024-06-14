@@ -1,0 +1,46 @@
+name: Create Release
+on:
+  push:
+    branches: [master]
+
+jobs:
+    build:
+        name: build aseprite-extension
+        runs-on: ubuntu-20.04
+        if: contains( github.event.head_commit.message, 'release' )
+        steps:
+            -   name: checkout code
+                uses: actions/checkout@v4
+            -   name: Set tag name
+                id: tag
+                run: |
+                    tag=$(echo "${{github.event.head_commit.message}}")
+                    echo "tag=$tag" >> $GITHUB_OUTPUT       
+            -   name: Create Tag
+                uses: actions/github-script@v5
+                with:
+                    github-token: ${{ github.token }}
+                    script: |
+                        github.rest.git.createRef({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            ref: "refs/tags/${{ steps.tag.outputs.tag }}",
+                            sha: context.sha
+                        })
+            -   name: create zip
+                run: |
+                    apt-get update 
+                    apt-get install p7zip -y --no-install-recommends
+                    7z a -tzip nes-chr-tools.zip $(< build-requirements.txt) 
+                    mv nes-chr-tools.zip nes-chr-tools-${{ steps.tag.outputs.tag }}.aseprite-extension
+            -   name: Create Release
+                env:
+                    GH_TOKEN: ${{ github.token }}
+                    GH_REPO: ${{ github.repository }}
+                run: |
+                    tag="${{ steps.tag.outputs.tag }}"
+                    body=$(<CHANGELOG.md)
+                    gh release create --draft "$tag" --title "$tag" --notes "$body"
+                    gh release upload "$tag" nes-chr-tools-${{steps.tag.outputs.tag}}.aseprite-extension  
+                    gh release edit "$tag" --draft=false
+    
