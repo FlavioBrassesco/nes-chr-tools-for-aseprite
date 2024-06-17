@@ -14,7 +14,7 @@ jobs:
             -   name: Set tag name
                 id: tag
                 run: |
-                    tag=$(echo "${{github.event.head_commit.message}}")
+                    tag=$(echo "${{github.event.head_commit.message}}" | grep -Po 'v\d+(\.\d+)+')
                     echo "tag=$tag" >> $GITHUB_OUTPUT       
             -   name: Create Tag
                 uses: actions/github-script@v5
