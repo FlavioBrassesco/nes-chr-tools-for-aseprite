@@ -1,6 +1,3 @@
-local bpp = 4
-local palette = {255, 255, 255, 0, 204, 102, 102, 0, 255, 204, 204, 0, 0, 0, 0, 0}
-
 function merge_chr_rows(a, b)
     local merged = 0
     local mask = 1
@@ -13,231 +10,117 @@ function merge_chr_rows(a, b)
     return merged
 end
 
-function order_chr(chr_array, chr_size)
+function merge_tables(chr)
+    local tile_size = 8
     local buffer = {}
-    local layer0_ndx = 0
 
-    local half_chr = math.floor(chr_size / 2)
-    local quarter_chr = math.floor(chr_size / 4)
-
-    while layer0_ndx < chr_size do
-
-        local layer1_ndx = layer0_ndx + quarter_chr
-        local table_end = layer0_ndx + half_chr
-
-        local tile_ndx = 0
-        local i = layer0_ndx
-        while (i < table_end) do
-            local byte_ndx = i % 8
-            local final_tile_ndx = math.floor(tile_ndx / 2)
-
-            if (tile_ndx % 2 == 1) then
-                local ndx = 1 + layer0_ndx + byte_ndx + final_tile_ndx * 8
-                buffer[ndx] = chr_array[i + 1]
-            else
-                local ndx = 1 + layer1_ndx + byte_ndx + final_tile_ndx * 8
-                buffer[ndx] = chr_array[i + 1]
-            end
-
-            if (byte_ndx == 7) then
-                tile_ndx = tile_ndx + 1
-            end
-
-            i = i + 1
+    -- scan 16 bytes at a time
+    for i = 1, #chr, 16 do
+        for j = i, i + 7 do
+            -- merge and attach to new buffer
+            buffer[#buffer + 1] = merge_chr_rows(chr[j + 8], chr[j])
         end
-
-        layer0_ndx = layer0_ndx + half_chr
     end
-
     return buffer
 end
+-- transform chr tables to bmp. rows defaults to 32
+function transform_tables(merged_chr, rows)
+    rows = rows or 32
+    local row_size_bytes = math.floor((#merged_chr / rows))
+    local cols = row_size_bytes / 8
 
-function merge_chr(chr_array, chr_size)
     local buffer = {}
-    local tile_cols = math.floor(math.sqrt(((chr_size / 4) / 8)))
-    local bytes_per_row = tile_cols * 8
-    local row_ndx = 0
-    local col_ndx = 0
 
-    local half_chr = math.floor(chr_size / 2)
-    local quarter_chr = math.floor(chr_size / 4)
-
-    local offset = 0
-    while (offset < chr_size) do
-        local i = 0
-        while (i < quarter_chr) do
-            local byte_ndx = i % 8
-            local c = merge_chr_rows(chr_array[1 + i + offset], chr_array[1 + i + offset + quarter_chr])
-
-            local ndx = 1 + (byte_ndx * tile_cols * 2) + col_ndx * 2 + row_ndx * bytes_per_row * 2
-            buffer[ndx] = c >> 8
-            buffer[ndx + 1] = c
-
-            if (i % bytes_per_row == bytes_per_row - 1) then
-                row_ndx = row_ndx + 1
+    for c_row = 1, rows do
+        for c_byte = 0, 7 do
+            for c_tile = 1, cols do
+                -- current row + current tile + current byte (+ 1 for default indexing)
+                local ndx = ((c_row - 1) * row_size_bytes) + ((c_tile - 1) * 8) + c_byte + 1
+                -- transform current int into 8 bytes and attach to buffer
+                for i = 14, 0, -2 do
+                    -- mask 2 ls bits
+                    buffer[#buffer + 1] = (merged_chr[ndx] >> i) & 3
+                end
             end
-
-            if (i % 8 == 7) then
-                col_ndx = (col_ndx + 1) % tile_cols
-            end
-            i = i + 1
         end
-        offset = offset + half_chr
     end
 
     return buffer
 end
+-- transform bmp to chr. width and height defaults to 128x256
+function bmp_to_chr(img, width, height)
+    width = width or 128
+    height = height or 256
 
-function decompress_chr(chr_array, chr_size)
+    local i_end = math.floor((width * height) / 8)
     local buffer = {}
-    local mask = 3
-    local tmp = 0
-    local i = 0
-    while (i < chr_size) do
-        tmp = (chr_array[i + 1] >> 6) & mask
-        tmp = (tmp << 4) | ((chr_array[i + 1] >> 4) & mask)
-        buffer[1 + i * 2] = tmp
-
-        tmp = (chr_array[i + 1] >> 2) & mask
-        tmp = (tmp << 4) | (chr_array[i + 1] & mask)
-        buffer[1 + i * 2 + 1] = tmp
-        i = i + 1
-    end
-
-    return buffer
-end
-
-function decompress_chr_255(chr_array, chr_size)
-    local buffer = {}
-    local mask = 3
-
-    local i = 0
-    while (i < chr_size) do
-        buffer[i * 4 + 1] = string.char((chr_array[i + 1] >> 6) & mask)
-        buffer[i * 4 + 2] = string.char((chr_array[i + 1] >> 4) & mask)
-        buffer[i * 4 + 3] = string.char((chr_array[i + 1] >> 2) & mask)
-        buffer[i * 4 + 4] = string.char((chr_array[i + 1] & mask))
-        i = i + 1
-    end
-
-    return buffer
-end
-
-function reverse(chr_array, chr_size)
-    local buffer = {}
-    local tile_cols = math.floor(math.sqrt(((chr_size / 4) / 8)))
-    local bytes_per_row = tile_cols * 8 * 2
-
     local b_offset = 1
-    local t_offset = chr_size - bytes_per_row + 1
-    while (b_offset < t_offset) do
-        for i = 0, bytes_per_row - 1, 8 do
-            local k = 7
-            for j = 0, 7 do
-                buffer[i + k + b_offset] = chr_array[i + j + t_offset]
-                buffer[i + j + t_offset] = chr_array[i + k + b_offset]
-                k = k - 1
+    local offset_y = 0
+    local offset_x = 0
+
+    for i = 0, i_end - 1, 8 do
+        offset_x = i % width
+
+        for y = 0, 7 do
+            local byte1 = {}
+            local byte2 = {}
+            for x = 0, 7 do
+                local v = img:getPixel(x + offset_x, y + offset_y)
+                byte1[#byte1 + 1] = (v >> 1) & 1
+                byte2[#byte2 + 1] = v & 1
             end
+            buffer[y + b_offset] = tonumber(table.concat(byte1), 2)
+            buffer[y + b_offset + 8] = tonumber(table.concat(byte2), 2)
         end
-        b_offset = b_offset + bytes_per_row
-        t_offset = t_offset - bytes_per_row
+        b_offset = b_offset + 16
+
+        if (offset_x == (width - 8)) then
+            offset_y = offset_y + 8
+        end
     end
 
     return buffer
 end
 
-function chr_to_raw_bmp_data_255(bytes)
-    local ordered = order_chr(bytes, 8192)
-    local merged = merge_chr(ordered, 8192)
-    return decompress_chr_255(merged, 8192)
+function chr_to_bmp(chr)
+    local merged = merge_tables(chr)
+    return transform_tables(merged)
 end
 
-function chr_to_raw_bmp_data(bytes)
-    local reversed = reverse(bytes, 8192)
-    local ordered = order_chr(reversed, 8192)
-    local merged = merge_chr(ordered, 8192)
-    return decompress_chr(merged, 8192)
+function buffer_to_img_bytes(buffer)
+    local img_bytes = {}
+    for i = 1, #buffer do
+        img_bytes[#img_bytes + 1] = string.char(buffer[i])
+    end
+    return table.concat(img_bytes)
 end
 
-function chr_to_bmp_buffer(bytes)
-    local width = 128
-    local height = 256
+function s_to_chr(s_str)
+    local chr = {}
 
-    local decompressed = chr_to_raw_bmp_data(bytes)
-
-    local fileheader = {66, 77, -- bitmap chr_bank_start
-    0, 0, 0, 0, -- file size in bytes
-    0, 0, -- reserved 1
-    0, 0, -- reserved 2
-    0, 0, 0, 0 -- byte offset where raw data is found
-    }
-
-    local infoheader = {40, 0, 0, 0, -- size of this header
-    0, 0, 0, 0, -- width
-    0, 0, 0, 0, -- height
-    1, 0, -- color planes: must be 1 by spec
-    4, 0, -- bits per pixel
-    0, 0, 0, 0, -- compression method: no compression
-    0, 0, 0, 0, -- raw data size: can omit for no compression
-    18, 11, 0, 0, -- horizontal resolution in px/m
-    18, 11, 0, 0, -- vertical resolution in px/m
-    4, 0, 0, 0, -- colors in palette
-    0, 0, 0, 0 -- important colors
-    }
-
-    local offset = 70
-    local filesize = offset + (8192 * 2)
-    -- convert all these values to little-endian:
-    -- file size
-    fileheader[3] = filesize & 0xff
-    fileheader[4] = filesize >> 8
-    fileheader[5] = filesize >> 16
-    fileheader[6] = filesize >> 24
-    -- raw data offset
-    fileheader[11] = offset & 0xff
-    fileheader[12] = offset >> 8
-    fileheader[13] = offset >> 16
-    fileheader[14] = offset >> 24
-    -- width
-    infoheader[5] = width & 0xff
-    infoheader[6] = width >> 8
-    infoheader[7] = width >> 16
-    infoheader[8] = width >> 24
-    -- height
-    infoheader[9] = height & 0xff
-    infoheader[10] = height >> 8
-    infoheader[11] = height >> 16
-    infoheader[12] = height >> 24
-
-    local buffer = {}
-
-    for i = 1, 14 do
-        buffer[#buffer + 1] = string.char(fileheader[i])
+    for c in s_str:gmatch "$.." do
+        if (c) then
+            chr[#chr + 1] = string.char(tonumber(c:sub(2, 3), 16)):byte()
+        end
     end
 
-    for i = 1, 40 do
-        buffer[#buffer + 1] = string.char(infoheader[i])
-    end
+    assert(#chr > 0, "Not a proper .s file")
 
-    for i = 1, 16 do
-        buffer[#buffer + 1] = string.char(palette[i])
-    end
-
-    for i = 1, 16384 do
-        buffer[#buffer + 1] = string.char(decompressed[i])
-    end
-
-    return buffer
+    return chr
 end
 
-function chr_to_bmp(bytes, output_name)
-    local buffer = chr_to_bmp_buffer(bytes)
+function chr_to_s(chr)
+    local segment = ".segment \"CHARS\"\n";
+    local s_str = segment .. ".byte ";
 
-    local f = io.open(output_name, "wb")
-    io.output(f)
-
-    for i = 1, 16454 do
-        io.write(buffer[i])
+    for i = 1, #chr do
+        if (i % 8 == 0) then
+            s_str = s_str .. "$" .. string.format("%02X", chr[i]) .. "\n.byte "
+        else
+            s_str = s_str .. "$" .. string.format("%02X", chr[i]) .. ","
+        end
     end
-    io.close(f)
+
+    s_str = s_str:sub(1, -7)
+    return s_str
 end

@@ -13,4 +13,4 @@ jobs:
             with:
                 image: flaviobrassesco/lua-with-busted:latest
                 options: -v ${{ github.workspace }}:/app
-                run: busted app/test/main.lua
+                run: cd app && busted test/main.lua

@@ -3,3 +3,4 @@
 *.bmp
 *.aseprite-extension
 /definitions
+*.s
