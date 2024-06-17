@@ -9,7 +9,7 @@
       },
       "problemMatcher": [],
       "label": "build .aseprite",
-      "command": "7z a -tzip nes-chr-tools.zip nes-chr-tools.lua bmp-convert-functions.lua chr-file-functions.lua globals.lua nes-file-functions.lua utils.lua package.json ; mv nes-chr-tools.zip nes-chr-tools.aseprite-extension"
+      "command": "7z a -tzip nes-chr-tools.zip $(< build-requirements.txt) ; mv nes-chr-tools.zip nes-chr-tools.aseprite-extension"
     },
     {
       "type": "shell",

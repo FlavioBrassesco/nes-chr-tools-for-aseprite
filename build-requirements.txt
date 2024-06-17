@@ -3,5 +3,5 @@ chr-file-functions.lua
 globals.lua 
 nes-chr-tools.lua 
 nes-file-functions.lua 
-package.json
+package.json 
 utils.lua 
